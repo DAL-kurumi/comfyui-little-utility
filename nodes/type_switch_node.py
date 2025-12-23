@@ -28,7 +28,7 @@ class TypeSwitchAutoNode:
             
         val_str = str(input)
         try:
-            # 優先嘗試轉換為 float 以處理包含小數點的字串
+            # 優先嘗試轉換為 float 以處理包含小數點Type Switch Auto的字串
             val_float = float(val_str)
             val_int = int(val_float)
         except:

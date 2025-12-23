@@ -1,103 +1,97 @@
 import { app } from "../../scripts/app.js";
 
-/**
- * [ComfyUI Little Utility] 
- * 動態插槽管理腳本 v4
- */
+console.log("[Little Utility] 動態輸入擴展已加載");
 
-console.log("[Little Utility] 動態輸入控制腳本已啟動");
+// 清理 TextCombineNode 多餘的空插槽
+function cleanupEmptySlots(node) {
+    if (node.type !== "TextCombineNode") return;
+    
+    const prefix = "text_";
+    const dynamicInputs = node.inputs.filter(i => i.name.startsWith(prefix));
+    
+    // 找到最後一個有連接的插槽索引
+    let lastConnectedIndex = -1;
+    for (let i = 0; i < dynamicInputs.length; i++) {
+        if (dynamicInputs[i].link !== null) {
+            lastConnectedIndex = i;
+        }
+    }
+    
+    // 保留：所有已連接的插槽 + 最後一個已連接插槽後的一個空插槽
+    const keepCount = lastConnectedIndex + 2; // +1 for next empty slot, +1 for 0-based index
+    
+    // 移除多餘的空插槽（從後往前移除）
+    let removed = 0;
+    for (let i = dynamicInputs.length - 1; i >= keepCount; i--) {
+        const slotToRemove = dynamicInputs[i];
+        const idx = node.inputs.indexOf(slotToRemove);
+        if (idx !== -1) {
+            node.removeInput(idx);
+            removed++;
+            console.log(`[Little Utility] 清理空插槽: ${slotToRemove.name}`);
+        }
+    }
+    
+    // 如果移除了插槽，重新計算節點大小
+    if (removed > 0) {
+        node.setSize(node.computeSize());
+        console.log(`[Little Utility] 節點大小已重新計算`);
+    }
+}
 
 app.registerExtension({
     name: "Comfy.LittleUtility.DynamicInputs",
+    
     async beforeRegisterNodeDef(nodeType, nodeData) {
         if (nodeData.name === "TextCombineNode") {
             
-            // 1. 監聽連接變動
-            const onConnectionsChange = nodeType.prototype.onConnectionsChange;
-            nodeType.prototype.onConnectionsChange = function(slotType, slotIndex, isConnected) {
-                const r = onConnectionsChange ? onConnectionsChange.apply(this, arguments) : undefined;
-                // 使用延時確保 LiteGraph 狀態已更新
-                setTimeout(() => manageTextCombineSlots(this), 10);
-                return r;
-            };
-
-            // 2. 監聽節點配置（載入工作流或重新整理時觸發）
-            const onConfigure = nodeType.prototype.onConfigure;
-            nodeType.prototype.onConfigure = function() {
-                const r = onConfigure ? onConfigure.apply(this, arguments) : undefined;
-                setTimeout(() => manageTextCombineSlots(this), 100); // 給予更長的延遲確保穩定
-                return r;
-            };
-
-            // 3. 節點被添加到畫布時
+            // 節點創建時的處理（包括加載工作流時）
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function() {
                 const r = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
-                setTimeout(() => manageTextCombineSlots(this), 100);
+                
+                // 延遲執行清理，確保節點已完全初始化
+                setTimeout(() => {
+                    cleanupEmptySlots(this);
+                    this.setDirtyCanvas(true, true);
+                }, 10);
+                
+                return r;
+            };
+            
+            // 連接變化時的處理
+            const onConnectionsChange = nodeType.prototype.onConnectionsChange;
+            nodeType.prototype.onConnectionsChange = function(type, index, connected, link_info) {
+                const r = onConnectionsChange ? onConnectionsChange.apply(this, arguments) : undefined;
+                
+                if (type === 1) { // INPUT
+                    const prefix = "text_";
+                    const maxCount = 10;
+                    
+                    const dynamicInputs = this.inputs.filter(i => i.name.startsWith(prefix));
+                    const lastInput = dynamicInputs[dynamicInputs.length - 1];
+                    const lastInputIndex = this.inputs.indexOf(lastInput);
+
+                    // 連接時：如果是最後一個插槽被連接，增加新插槽
+                    if (connected && index === lastInputIndex && dynamicInputs.length < maxCount) {
+                        const newName = `${prefix}${dynamicInputs.length + 1}`;
+                        console.log(`[Little Utility] 增加插槽: ${newName}`);
+                        this.addInput(newName, "STRING");
+                        this.setSize(this.computeSize());
+                        this.setDirtyCanvas(true, true);
+                    }
+                    
+                    // 斷開連接時：清理多餘的空插槽
+                    if (!connected) {
+                        setTimeout(() => {
+                            cleanupEmptySlots(this);
+                            this.setDirtyCanvas(true, true);
+                        }, 10);
+                    }
+                }
+                
                 return r;
             };
         }
     }
 });
-
-/**
- * 管理文字結合節點的插槽
- * 規則：
- * - 如果最後一個插槽有連線，且未滿 10 個，則增加一個新的。
- * - 如果末尾有多個未連線的插槽，則剪掉多餘的，只保留一個空的。
- */
-function manageTextCombineSlots(node) {
-    if (!node.inputs || !node.type.includes("TextCombineNode")) return;
-
-    const prefix = "text_";
-    const maxCount = 10;
-    
-    // 獲取所有 text_ 開頭的插槽並按照數字排序
-    let getTextInputs = () => node.inputs.filter(i => i.name.startsWith(prefix))
-        .sort((a, b) => {
-            const n1 = parseInt(a.name.split("_")[1]) || 0;
-            const n2 = parseInt(b.name.split("_")[1]) || 0;
-            return n1 - n2;
-        });
-
-    let textInputs = getTextInputs();
-    if (textInputs.length === 0) return;
-
-    let changed = false;
-
-    // --- A. 增加邏輯 ---
-    const lastInput = textInputs[textInputs.length - 1];
-    if (lastInput.link !== null && textInputs.length < maxCount) {
-        const nextNum = parseInt(lastInput.name.split("_")[1]) + 1;
-        node.addInput(`${prefix}${nextNum}`, "STRING");
-        changed = true;
-        // 遞歸檢查一次（防抖處理）
-        setTimeout(() => manageTextCombineSlots(node), 20);
-    }
-
-    // --- B. 移除邏輯 ---
-    // 從後往前檢查，如果最後兩個插槽都是空的，則移除最後一個
-    textInputs = getTextInputs(); // 重新獲取最新的插槽列表
-    if (textInputs.length > 1) {
-        for (let i = textInputs.length - 1; i >= 1; i--) {
-            const current = textInputs[i];
-            const prev = textInputs[i-1];
-            
-            // 如果當前是空的，且它的前一個也是空的，則裁掉當前這個
-            if (current.link === null && prev.link === null) {
-                const inputIndex = node.inputs.indexOf(current);
-                if (inputIndex !== -1) {
-                    node.removeInput(inputIndex);
-                    changed = true;
-                }
-            } else {
-                // 一旦遇到有連現或唯一的空插槽，就停止裁剪（保持順序）
-                break;
-            }
-        }
-    }
-
-    if (changed) {
-        node.setDirtyCanvas(true, true);
-    }
-}
