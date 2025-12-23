@@ -1,64 +1,61 @@
 import { app } from "../../scripts/app.js";
 
+// --- 顯示日誌以確認腳本已讀取 ---
+console.log("[Little Utility] JS 腳本加載成功");
+
 app.registerExtension({
     name: "Comfy.LittleUtility.DynamicInputs",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        
-        // --- 針對文字結合節點 (TextCombineNode) ---
-        if (nodeData.name === "TextCombineNode") {
+        if (nodeData.name === "TextCombineNode" || nodeData.name === "TypeSwitchNode" || nodeData.name === "TypeSwitchAutoNode") {
+            
+            // 記錄命中
+            console.log(`[Little Utility] 正在處理節點原型: ${nodeData.name}`);
+
+            // 保存原始的 onConnectionsChange
             const onConnectionsChange = nodeType.prototype.onConnectionsChange;
-            nodeType.prototype.onConnectionsChange = function (type, index, connected, link_info) {
-                if (onConnectionsChange) onConnectionsChange.apply(this, arguments);
-                
-                if (type === 1) { // 1 是輸入插槽 (INPUT)
-                    // 獲取所有以 text_ 開頭的輸入
-                    const textInputs = this.inputs.filter(i => i.name.startsWith("text_"));
-                    const lastConnectedIndex = textInputs.reduce((max, input, idx) => input.link !== null ? idx : max, -1);
-                    
-                    // 如果最後一個有連接的插槽是目前最後一個插槽，且未達 10 個，增加一個
-                    if (lastConnectedIndex === textInputs.length - 1 && textInputs.length < 10) {
-                        this.addInput(`text_${textInputs.length + 1}`, "STRING");
-                    }
-                    
-                    // 清理多餘的未連接插槽（保留一個空插槽）
-                    for (let i = textInputs.length - 1; i >= 1; i--) {
-                        if (textInputs[i].link === null && textInputs[i-1].link === null) {
-                            this.removeInput(this.inputs.findIndex(inp => inp.name === textInputs[i].name));
-                        }
-                    }
+            nodeType.prototype.onConnectionsChange = function(type, index, connected, link_info) {
+                if (onConnectionsChange) {
+                    onConnectionsChange.apply(this, arguments);
                 }
-            };
-        }
 
-        // --- 針對類型切換節點 (TypeSwitchNode) ---
-        if (nodeData.name === "TypeSwitchNode" || nodeData.name === "TypeSwitchAutoNode") {
-            const onConnectionsChange = nodeType.prototype.onConnectionsChange;
-            nodeType.prototype.onConnectionsChange = function (type, index, connected, link_info) {
-                if (onConnectionsChange) onConnectionsChange.apply(this, arguments);
-                
+                // 只有輸入插槽 (type 1) 變動才觸發
                 if (type === 1) {
-                    // 初始只有 text_input
-                    // 連接 text_input 後 出現 int_input
-                    // 連接 int_input 後 出現 float_input
-                    const hasText = this.inputs.find(i => i.name === "text_input")?.link !== null;
-                    const hasInt = this.inputs.find(i => i.name === "int_input")?.link !== null;
+                    console.log(`[Little Utility] ${this.type} 插槽變動:`, {index, connected});
                     
-                    if (hasText && !this.inputs.find(i => i.name === "int_input")) {
-                        this.addInput("int_input", "INT");
-                    }
-                    if (hasInt && !this.inputs.find(i => i.name === "float_input")) {
-                        this.addInput("float_input", "FLOAT");
-                    }
+                    // 文字結合節點邏輯
+                    if (this.comfyClass === "TextCombineNode") {
+                        const prefix = "text_";
+                        const inputs = this.inputs.filter(i => i.name.startsWith(prefix));
+                        const lastInput = inputs[inputs.length - 1];
+                        
+                        if (connected && index === this.inputs.indexOf(lastInput) && inputs.length < 10) {
+                            this.addInput(`${prefix}${inputs.length + 1}`, "STRING");
+                            this.setDirtyCanvas(true, true);
+                        }
+                    } 
+                    // 類型切換節點邏輯
+                    else if (this.comfyClass === "TypeSwitchNode" || this.comfyClass === "TypeSwitchAutoNode") {
+                        const hasText = this.inputs.find(i => i.name === "text_input")?.link !== null;
+                        const intInput = this.inputs.find(i => i.name === "int_input");
+                        const floatInput = this.inputs.find(i => i.name === "float_input");
 
-                    // 逆向移除
-                    if (!hasInt && this.inputs.find(i => i.name === "float_input")?.link === null) {
-                        this.removeInput(this.inputs.findIndex(i => i.name === "float_input"));
-                    }
-                    if (!hasText && this.inputs.find(i => i.name === "int_input")?.link === null) {
-                        this.removeInput(this.inputs.findIndex(i => i.name === "int_input"));
+                        if (hasText && !intInput) {
+                            this.addInput("int_input", "INT");
+                        }
+                        if (intInput && intInput.link !== null && !floatInput) {
+                            this.addInput("float_input", "FLOAT");
+                        }
+                        this.setDirtyCanvas(true, true);
                     }
                 }
             };
         }
     },
+    // 額外保險：如果節點已經在畫布上，也檢查一次
+    nodeCreated(node) {
+        if (["TextCombineNode", "TypeSwitchNode", "TypeSwitchAutoNode"].includes(node.comfyClass)) {
+            console.log(`[Little Utility] 節點實例建立: ${node.comfyClass}`);
+            // 可以在這裡做初始檢查
+        }
+    }
 });

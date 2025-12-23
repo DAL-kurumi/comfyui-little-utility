@@ -9,7 +9,7 @@ from .nodes.text_combine_node import TextCombineNode
 from .nodes.text_cleanup_node import TextCleanupNode, TextCleanupAdvancedNode
 from .nodes.type_switch_node import TypeSwitchNode, TypeSwitchAutoNode
 
-# 节点类映射
+WEB_DIRECTORY = "web"
 NODE_CLASS_MAPPINGS = {
     "ImageInfoNode": ImageInfoNode,
     "ImageDownloadNode": ImageDownloadNode,

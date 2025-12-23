@@ -44,19 +44,19 @@ class TextCombineNode:
         返回:
             tuple: (合併後的文字,)
         """
-        # 收集所有輸入（包括具名參數和動態參數）
+        # 收集所有輸入（從 text_1, text_2, ...）
         texts = []
         
-        # 按序號排序 kwargs 中的 text_ 參數
-        sorted_keys = sorted([k for k in kwargs.keys() if k.startswith("text_")], 
-                            key=lambda x: int(x.split("_")[1]) if "_" in x else 0)
+        # 獲取所有以 text_ 開頭的參數並按數字序號排序
+        text_keys = sorted([k for k in kwargs.keys() if k.startswith("text_")], 
+                          key=lambda x: int(x.split("_")[1]) if "_" in x else 0)
         
-        for key in sorted_keys:
+        for key in text_keys:
             val = kwargs[key]
             if val and isinstance(val, str) and val.strip():
                 texts.append(val)
         
-        # 合併文字
+        # 使用分隔符合併文字
         combined = separator.join(texts)
         return (combined,)
 
