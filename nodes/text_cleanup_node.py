@@ -20,10 +20,7 @@ class TextCleanupNode:
         """
         return {
             "required": {
-                "text": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
+                "text": ("STRING", {"forceInput": True}),
             },
             "optional": {
                 "remove_start_end_commas": ("BOOLEAN", {
@@ -134,10 +131,9 @@ class TextCleanupAdvancedNode:
         """
         return {
             "required": {
-                "text": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
+                "text": ("STRING", {"forceInput": True}),
+            },
+            "optional": {
                 "clean_commas": ("BOOLEAN", {
                     "default": True,
                     "label_on": "清理",

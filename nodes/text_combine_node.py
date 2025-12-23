@@ -6,7 +6,7 @@
 class TextCombineNode:
     """
     文字結合節點
-    輸入：多個文字輸入（最多10個）+ 分隔符
+    輸入：多個文字連接輸入（最多10個）+ 分隔符
     輸出：合併後的文字
     """
     
@@ -17,52 +17,21 @@ class TextCombineNode:
         """
         return {
             "required": {
-                "text_1": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
+                "text_1": ("STRING", {"forceInput": True}),
+            },
+            "optional": {
+                "text_2": ("STRING", {"forceInput": True}),
+                "text_3": ("STRING", {"forceInput": True}),
+                "text_4": ("STRING", {"forceInput": True}),
+                "text_5": ("STRING", {"forceInput": True}),
+                "text_6": ("STRING", {"forceInput": True}),
+                "text_7": ("STRING", {"forceInput": True}),
+                "text_8": ("STRING", {"forceInput": True}),
+                "text_9": ("STRING", {"forceInput": True}),
+                "text_10": ("STRING", {"forceInput": True}),
                 "separator": ("STRING", {
                     "multiline": False,
                     "default": "\n",
-                    "placeholder": "輸入分隔符（例如：\\n, , 等）"
-                }),
-            },
-            "optional": {
-                "text_2": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_3": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_4": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_5": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_6": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_7": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_8": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_9": ("STRING", {
-                    "multiline": True,
-                    "default": ""
-                }),
-                "text_10": ("STRING", {
-                    "multiline": True,
-                    "default": ""
                 }),
             },
         }
