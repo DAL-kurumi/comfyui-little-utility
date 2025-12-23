@@ -20,7 +20,7 @@ class ImageDownloadNode:
             "required": {
                 "url": ("STRING", {
                     "multiline": False,
-                    "default": "https://example.com/image.png"
+                    "default": "URL"
                 }),
             },
         }
@@ -43,6 +43,10 @@ class ImageDownloadNode:
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
+            
+            # 针对 Pixiv 的特殊处理：必须设置 Referer 否则会 403
+            if 'pximg.net' in url:
+                headers['Referer'] = 'https://www.pixiv.net/'
             
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
