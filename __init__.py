@@ -8,6 +8,7 @@ from .nodes.image_download_node import ImageDownloadNode
 from .nodes.text_combine_node import TextCombineNode
 from .nodes.text_cleanup_node import TextCleanupNode, TextCleanupAdvancedNode
 from .nodes.type_switch_node import TypeSwitchAutoNode
+from .nodes.latent_utils import EmptyLatentImageWithFlip
 
 WEB_DIRECTORY = "web"
 NODE_CLASS_MAPPINGS = {
@@ -17,6 +18,7 @@ NODE_CLASS_MAPPINGS = {
     "TextCleanupNode": TextCleanupNode,
     "TextCleanupAdvancedNode": TextCleanupAdvancedNode,
     "TypeSwitchAutoNode": TypeSwitchAutoNode,
+    "EmptyLatentImageWithFlip": EmptyLatentImageWithFlip,
 }
 
 # 节点显示名称映射
@@ -27,6 +29,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "TextCleanupNode": "文字清理 (Text Cleanup)",
     "TextCleanupAdvancedNode": "文字清理進階 (Text Cleanup Advanced)",
     "TypeSwitchAutoNode": "類型切換自動 (Type Switch Auto)",
+    "EmptyLatentImageWithFlip": "空Latent圖像(可翻轉) (Empty Latent with Flip)",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
