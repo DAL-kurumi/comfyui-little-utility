@@ -20,15 +20,7 @@ class TextCombineNode:
                 "text_1": ("STRING", {"forceInput": True}),
             },
             "optional": {
-                "text_2": ("STRING", {"forceInput": True}),
-                "text_3": ("STRING", {"forceInput": True}),
-                "text_4": ("STRING", {"forceInput": True}),
-                "text_5": ("STRING", {"forceInput": True}),
-                "text_6": ("STRING", {"forceInput": True}),
-                "text_7": ("STRING", {"forceInput": True}),
-                "text_8": ("STRING", {"forceInput": True}),
-                "text_9": ("STRING", {"forceInput": True}),
-                "text_10": ("STRING", {"forceInput": True}),
+                # 其他 text_n 由 JS 動態添加，這裡不再列出 2-10
                 "separator": ("STRING", {
                     "multiline": False,
                     "default": "\n",
@@ -41,36 +33,31 @@ class TextCombineNode:
     FUNCTION = "combine_texts"
     CATEGORY = "utils"
     
-    def combine_texts(self, separator="\n", text_1="", text_2="", text_3="", text_4="", 
-                     text_5="", text_6="", text_7="", text_8="", text_9="", text_10="", **kwargs):
+    def combine_texts(self, separator="\n", **kwargs):
         """
         合併所有輸入的文字，使用指定的分隔符
         
         參數:
             separator: 分隔符字符串
-            text_1 到 text_10: 最多10個文字輸入
+            **kwargs: 所有動態輸入的文字 (text_1, text_2, ...)
             
         返回:
             tuple: (合併後的文字,)
         """
-        # 收集所有非空的文字輸入
+        # 收集所有輸入（包括具名參數和動態參數）
         texts = []
         
-        # 檢查所有10個可能的輸入
-        for i, text in enumerate([text_1, text_2, text_3, text_4, text_5, 
-                                   text_6, text_7, text_8, text_9, text_10], 1):
-            # 只添加非空的文字
-            if text and text.strip():
-                texts.append(text)
-                print(f"文字輸入 {i}: {text[:50]}...")  # 打印前50個字符用於調試
+        # 按序號排序 kwargs 中的 text_ 參數
+        sorted_keys = sorted([k for k in kwargs.keys() if k.startswith("text_")], 
+                            key=lambda x: int(x.split("_")[1]) if "_" in x else 0)
         
-        # 使用分隔符合併所有文字
+        for key in sorted_keys:
+            val = kwargs[key]
+            if val and isinstance(val, str) and val.strip():
+                texts.append(val)
+        
+        # 合併文字
         combined = separator.join(texts)
-        
-        print(f"總共合併了 {len(texts)} 個文字輸入")
-        print(f"使用分隔符: {repr(separator)}")
-        print(f"合併結果長度: {len(combined)} 字符")
-        
         return (combined,)
 
 

@@ -17,10 +17,11 @@ class TypeSwitchNode:
         定義節點的輸入類型
         """
         return {
-            "optional": {
+            "required": {
                 "text_input": ("STRING", {"forceInput": True}),
-                "int_input": ("INT", {"forceInput": True}),
-                "float_input": ("FLOAT", {"forceInput": True}),
+            },
+            "optional": {
+                # int_input 和 float_input 由 JS 動態添加
                 "output_type": (["STRING", "INT", "FLOAT"], {
                     "default": "STRING"
                 }),
@@ -32,21 +33,13 @@ class TypeSwitchNode:
     FUNCTION = "switch_type"
     CATEGORY = "utils"
     
-    def switch_type(self, text_input=None, int_input=None, float_input=None, output_type="STRING"):
+    def switch_type(self, output_type="STRING", **kwargs):
         """
         根據優先級選擇輸入並轉換為目標類型
-        
-        優先級：文字 > 整數 > 小數
-        
-        參數:
-            text_input: 文字輸入（可選）
-            int_input: 整數輸入（可選）
-            float_input: 小數輸入（可選）
-            output_type: 目標輸出類型 ("STRING", "INT", "FLOAT")
-            
-        返回:
-            tuple: (文字輸出, 整數輸出, 小數輸出) - 根據 output_type 決定哪個有效
         """
+        text_input = kwargs.get("text_input")
+        int_input = kwargs.get("int_input")
+        float_input = kwargs.get("float_input")
         print("=" * 50)
         print("類型切換節點執行中...")
         print(f"目標輸出類型: {output_type}")
@@ -158,10 +151,11 @@ class TypeSwitchAutoNode:
         定義節點的輸入類型
         """
         return {
-            "optional": {
+            "required": {
                 "text_input": ("STRING", {"forceInput": True}),
-                "int_input": ("INT", {"forceInput": True}),
-                "float_input": ("FLOAT", {"forceInput": True}),
+            },
+            "optional": {
+                # int_input 和 float_input 由 JS 動態添加
             },
         }
     
@@ -170,20 +164,13 @@ class TypeSwitchAutoNode:
     FUNCTION = "auto_switch"
     CATEGORY = "utils"
     
-    def auto_switch(self, text_input=None, int_input=None, float_input=None):
+    def auto_switch(self, **kwargs):
         """
         自動選擇輸入並輸出所有類型的轉換結果
-        
-        優先級：文字 > 整數 > 小數
-        
-        參數:
-            text_input: 文字輸入（可選）
-            int_input: 整數輸入（可選）
-            float_input: 小數輸入（可選）
-            
-        返回:
-            tuple: (文字輸出, 整數輸出, 小數輸出) - 全部輸出
         """
+        text_input = kwargs.get("text_input")
+        int_input = kwargs.get("int_input")
+        float_input = kwargs.get("float_input")
         print("=" * 50)
         print("自動類型切換節點執行中...")
         
