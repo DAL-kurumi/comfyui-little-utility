@@ -20,7 +20,7 @@ class ImageDownloadNode:
             "required": {
                 "url": ("STRING", {
                     "multiline": False,
-                    "default": "URL"
+                    "default": ""
                 }),
             },
         }
