@@ -9,6 +9,7 @@ from .nodes.text_combine_node import TextCombineNode
 from .nodes.text_cleanup_node import TextCleanupNode, TextCleanupAdvancedNode
 from .nodes.type_switch_node import TypeSwitchAutoNode
 from .nodes.lora_selector_node import LoraSelectorNode
+from .nodes.latent_utils import EmptyLatentImageWithFlip
 
 # 導入 API 路由（這會自動註冊路由到服務器）
 from .nodes.server import lora_api
@@ -19,6 +20,7 @@ NODE_CLASS_MAPPINGS = {
     "ImageDownloadNode": ImageDownloadNode,
     "TextCombineNode": TextCombineNode,
     "TextCleanupNode": TextCleanupNode,
+    "EmptyLatentImageWithFlip": EmptyLatentImageWithFlip,
     "TextCleanupAdvancedNode": TextCleanupAdvancedNode,
     "TypeSwitchAutoNode": TypeSwitchAutoNode,
     "LoraSelectorNode": LoraSelectorNode,
@@ -30,6 +32,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ImageDownloadNode": "图片下载 (Image Download)",
     "TextCombineNode": "文字結合 (Text Combine)",
     "TextCleanupNode": "文字清理 (Text Cleanup)",
+    "EmptyLatentImageWithFlip": "空Latent圖像翻轉 (Empty Latent With Flip)",
     "TextCleanupAdvancedNode": "文字清理進階 (Text Cleanup Advanced)",
     "TypeSwitchAutoNode": "類型切換自動 (Type Switch Auto)",
     "LoraSelectorNode": "Lora 選擇器 (Lora Selector)",
