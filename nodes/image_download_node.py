@@ -39,16 +39,32 @@ class ImageDownloadNode:
             return (torch.zeros((1, 64, 64, 3), dtype=torch.float32),)
 
         try:
-            # 设置请求头，模仿浏览器
+            # 设置更全的请求头，模仿现代浏览器
             headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Fetch-Dest': 'image',
+                'Sec-Fetch-Mode': 'no-cors',
+                'Sec-Fetch-Site': 'cross-site',
             }
             
             # 针对 Pixiv 的特殊处理：必须设置 Referer 否则会 403
             if 'pximg.net' in url:
                 headers['Referer'] = 'https://www.pixiv.net/'
             
-            response = requests.get(url, headers=headers, timeout=10)
+            # 针对 Twitter/X 的处理
+            if 'twimg.com' in url:
+                headers['Referer'] = 'https://x.com/'
+
+            response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+            if response.status_code != 200:
+                print(f"下载失败，状态码: {response.status_code}, URL: {url}")
             response.raise_for_status()
             
             img = Image.open(BytesIO(response.content))
