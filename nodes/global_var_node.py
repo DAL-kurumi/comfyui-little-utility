@@ -1,6 +1,5 @@
 import os
 import json
-import folder_paths
 
 class GlobalVarStorage:
     """Global storage for variable sharing between nodes"""
@@ -69,6 +68,14 @@ class GlobalVarStorage:
             
         return None
 
+    @classmethod
+    def get_all_var_names(cls):
+        """Get all variable names from memory and disk cache"""
+        all_names = set(cls._storage.keys())
+        cache = cls._load_cache()
+        all_names.update(cache.keys())
+        return sorted(list(all_names)) if all_names else ["(empty)"]
+
 class GlobalVarSetNode:
     def __init__(self):
         pass
@@ -77,7 +84,7 @@ class GlobalVarSetNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "input_data": ("*",),
+                "input_data": ("*", {"forceInput": True}),
                 "var_name": ("STRING", {"default": "var_01", "multiline": False}),
                 "is_cached": ("BOOLEAN", {"default": False, "label_on": "Cache (Disk)", "label_off": "Session Only"}),
             }
@@ -104,7 +111,7 @@ class GlobalVarGetNode:
                 "var_name": ("STRING", {"default": "var_01", "multiline": False}),
             },
             "optional": {
-                "trigger": ("*",),
+                "trigger": ("*", {"forceInput": True}),
             }
         }
 
@@ -117,5 +124,41 @@ class GlobalVarGetNode:
         val = GlobalVarStorage.get(var_name)
         if val is None:
             # Validate or handle missing values (optional)
+            print(f"Warning: Global variable '{var_name}' not found or is None.")
+        return (val,)
+
+class GlobalVarGetSelectNode:
+    """Get node with dropdown selector for existing variable names"""
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        var_names = GlobalVarStorage.get_all_var_names()
+        return {
+            "required": {
+                "var_name": (var_names, {"default": var_names[0] if var_names else "(empty)"}),
+            },
+            "optional": {
+                "trigger": ("*", {"forceInput": True}),
+            }
+        }
+
+    RETURN_TYPES = ("*",)
+    RETURN_NAMES = ("value",)
+    FUNCTION = "get_value"
+    CATEGORY = "utils/global"
+
+    @classmethod
+    def IS_CHANGED(cls, var_name, trigger=None):
+        # Always re-execute to get latest value
+        return float("nan")
+
+    def get_value(self, var_name, trigger=None):
+        if var_name == "(empty)":
+            print("Warning: No global variables available.")
+            return (None,)
+        val = GlobalVarStorage.get(var_name)
+        if val is None:
             print(f"Warning: Global variable '{var_name}' not found or is None.")
         return (val,)
