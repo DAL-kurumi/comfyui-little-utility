@@ -232,6 +232,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "TextCleanupNode": "文字清理 (Text Cleanup)",
-    "TextCleanupAdvancedNode": "文字清理進階 (Text Cleanup Advanced)",
+    "TextCleanupNode": "Text Cleanup",
+    "TextCleanupAdvancedNode": "Text Cleanup Adv",
 }

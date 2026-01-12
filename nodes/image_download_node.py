@@ -93,5 +93,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ImageDownloadNode": "图片下载 (Image Download)"
+    "ImageDownloadNode": "Image Download"
 }

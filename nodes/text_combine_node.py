@@ -67,5 +67,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "TextCombineNode": "文字結合 (Text Combine)"
+    "TextCombineNode": "Text Combine"
 }

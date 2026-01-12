@@ -131,6 +131,6 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LoraSelectorNode": "Lora 選擇器 (Lora Selector)"
+    "LoraSelectorNode": "Lora Selector"
 }
 

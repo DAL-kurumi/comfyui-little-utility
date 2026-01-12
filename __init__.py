@@ -10,6 +10,7 @@ from .nodes.text_cleanup_node import TextCleanupNode, TextCleanupAdvancedNode
 from .nodes.type_switch_node import TypeSwitchAutoNode
 from .nodes.lora_selector_node import LoraSelectorNode
 from .nodes.latent_utils import EmptyLatentImageWithFlip
+from .nodes.global_var_node import GlobalVarSetNode, GlobalVarGetNode
 
 # 導入 API 路由（這會自動註冊路由到服務器）
 from .nodes.server import lora_api
@@ -24,18 +25,22 @@ NODE_CLASS_MAPPINGS = {
     "TextCleanupAdvancedNode": TextCleanupAdvancedNode,
     "TypeSwitchAutoNode": TypeSwitchAutoNode,
     "LoraSelectorNode": LoraSelectorNode,
+    "GlobalVarSetNode": GlobalVarSetNode,
+    "GlobalVarGetNode": GlobalVarGetNode,
 }
 
 # 节点显示名称映射
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ImageInfoNode": "图片信息 (Image Info)",
-    "ImageDownloadNode": "图片下载 (Image Download)",
-    "TextCombineNode": "文字結合 (Text Combine)",
-    "TextCleanupNode": "文字清理 (Text Cleanup)",
-    "EmptyLatentImageWithFlip": "空Latent圖像翻轉 (Empty Latent With Flip)",
-    "TextCleanupAdvancedNode": "文字清理進階 (Text Cleanup Advanced)",
-    "TypeSwitchAutoNode": "類型切換自動 (Type Switch Auto)",
-    "LoraSelectorNode": "Lora 選擇器 (Lora Selector)",
+    "ImageInfoNode": "Image Info",
+    "ImageDownloadNode": "Image Download",
+    "TextCombineNode": "Text Combine",
+    "TextCleanupNode": "Text Cleanup",
+    "EmptyLatentImageWithFlip": "Empty Latent Flip",
+    "TextCleanupAdvancedNode": "Text Cleanup Adv",
+    "TypeSwitchAutoNode": "Type Switch",
+    "LoraSelectorNode": "Lora Selector",
+    "GlobalVarSetNode": "Global Var Set",
+    "GlobalVarGetNode": "Global Var Get",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

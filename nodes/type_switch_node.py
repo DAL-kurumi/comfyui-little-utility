@@ -44,5 +44,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "TypeSwitchAutoNode": "類型切換自動 (Type Switch Auto)",
+    "TypeSwitchAutoNode": "Type Switch",
 }

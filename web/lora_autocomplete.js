@@ -426,7 +426,9 @@ function showDropdown(inputElement, loras, query, onSelect, triggerWords) {
             item.appendChild(nameSpan);
             
             // 顯示是否有觸發詞
-            if (triggerWords && triggerWords[lora.name]) {
+            // 優先使用傳入的 triggerWords，如果沒有則使用全局緩存
+            const tw = triggerWords || triggerWordsCache;
+            if (tw && tw[lora.name]) {
                 const hasTrigger = document.createElement("span");
                 hasTrigger.className = "has-trigger";
                 hasTrigger.textContent = "✓ 觸發詞";
@@ -573,13 +575,15 @@ function createManageDialog(onClose) {
         if (e.target === overlay) close();
     });
     
-    // Lora 名稱自動補全
+                    // Lora 名稱自動補全
     let loras = [];
-    let triggerWords = {};
     
     async function initData() {
         loras = await fetchLoraList();
-        triggerWords = await fetchTriggerWords();
+        // 確保觸發詞是最新的
+        if (!triggerWordsCache) {
+            await fetchTriggerWords();
+        }
     }
     
     initData();
@@ -605,7 +609,8 @@ function createManageDialog(onClose) {
             nameSpan.innerHTML = highlightMatch(lora.name, query);
             item.appendChild(nameSpan);
             
-            if (triggerWords[lora.name]) {
+            // 直接使用全局緩存
+            if (triggerWordsCache && triggerWordsCache[lora.name]) {
                 const hasTrigger = document.createElement("span");
                 hasTrigger.className = "has-trigger";
                 hasTrigger.textContent = "✓";
@@ -614,7 +619,7 @@ function createManageDialog(onClose) {
             
             item.addEventListener("click", () => {
                 nameInput.value = lora.name;
-                triggerInput.value = triggerWords[lora.name] || "";
+                triggerInput.value = (triggerWordsCache && triggerWordsCache[lora.name]) || "";
                 dropdown.style.display = "none";
             });
             
@@ -691,7 +696,7 @@ function createManageDialog(onClose) {
         
         if (result.success) {
             showToast(triggerWord ? "觸發詞已保存" : "觸發詞已刪除", "success");
-            triggerWords[loraName] = triggerWord;
+            // 這裡不需要手動更新緩存，saveTriggerWord 已經做了
             nameInput.value = "";
             triggerInput.value = "";
         } else {
@@ -739,7 +744,10 @@ app.registerExtension({
                     }
                     
                     let loras = await fetchLoraList();
-                    let triggerWords = await fetchTriggerWords();
+                    // 初始化觸發詞緩存
+                    if (!triggerWordsCache) {
+                        await fetchTriggerWords();
+                    }
                     
                     const onSelect = (value) => {
                         loraWidget.value = value;
@@ -752,14 +760,18 @@ app.registerExtension({
                     
                     inputEl.addEventListener("input", () => {
                         const query = inputEl.value;
-                        showDropdown(inputEl, loras, query, onSelect, triggerWords);
+                        // 直接傳遞 null 作為 triggerWords 參數，讓 showDropdown 使用全局緩存
+                        showDropdown(inputEl, loras, query, onSelect, null);
                     });
                     
                     inputEl.addEventListener("focus", async () => {
                         loras = await fetchLoraList();
-                        triggerWords = await fetchTriggerWords();
+                        // 確保緩存存在
+                        if (!triggerWordsCache) {
+                            await fetchTriggerWords();
+                        }
                         const query = inputEl.value;
-                        showDropdown(inputEl, loras, query, onSelect, triggerWords);
+                        showDropdown(inputEl, loras, query, onSelect, null);
                     });
                     
                     inputEl.addEventListener("keydown", (e) => {
@@ -778,10 +790,7 @@ app.registerExtension({
                         e.preventDefault();
                         e.stopPropagation();
                         createManageDialog(() => {
-                            // 重新獲取觸發詞
-                            fetchTriggerWords().then(data => {
-                                triggerWords = data;
-                            });
+                            // 關閉回調，不需要做什麼，因為緩存已經是全局的並已更新
                         });
                     });
                     
