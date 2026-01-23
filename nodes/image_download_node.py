@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from PIL import Image, ImageOps
 from io import BytesIO
 
@@ -23,6 +25,12 @@ class ImageDownloadNode:
                     "default": ""
                 }),
             },
+            "optional": {
+                "proxy": ("STRING", {
+                    "multiline": False,
+                    "default": ""
+                }),
+            }
         }
     
     RETURN_TYPES = ("IMAGE",)
@@ -30,7 +38,7 @@ class ImageDownloadNode:
     FUNCTION = "download_image"
     CATEGORY = "utils"
     
-    def download_image(self, url):
+    def download_image(self, url, proxy=""):
         """
         从指定URL下载图片并转换为ComfyUI格式
         """
@@ -62,7 +70,21 @@ class ImageDownloadNode:
             if 'twimg.com' in url:
                 headers['Referer'] = 'https://x.com/'
 
-            response = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+            # 创建 Session 并设置重试策略
+            session = requests.Session()
+            retries = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+            session.mount('http://', HTTPAdapter(max_retries=retries))
+            session.mount('https://', HTTPAdapter(max_retries=retries))
+
+            # 设置代理
+            proxies = None
+            if proxy and proxy.strip():
+                proxies = {
+                    "http": proxy.strip(),
+                    "https": proxy.strip(),
+                }
+
+            response = session.get(url, headers=headers, timeout=30, allow_redirects=True, proxies=proxies)
             if response.status_code != 200:
                 print(f"下载失败，状态码: {response.status_code}, URL: {url}")
             response.raise_for_status()

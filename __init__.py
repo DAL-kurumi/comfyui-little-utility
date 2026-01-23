@@ -10,7 +10,7 @@ from .nodes.text_cleanup_node import TextCleanupNode, TextCleanupAdvancedNode
 from .nodes.type_switch_node import TypeSwitchAutoNode
 from .nodes.lora_selector_node import LoraSelectorNode
 from .nodes.latent_utils import EmptyLatentImageWithFlip
-from .nodes.global_var_node import GlobalVarSetNode, GlobalVarGetNode, GlobalVarGetSelectNode
+from .nodes.cache_node import CacheNode
 
 # 導入 API 路由（這會自動註冊路由到服務器）
 from .nodes.server import lora_api
@@ -25,9 +25,7 @@ NODE_CLASS_MAPPINGS = {
     "TextCleanupAdvancedNode": TextCleanupAdvancedNode,
     "TypeSwitchAutoNode": TypeSwitchAutoNode,
     "LoraSelectorNode": LoraSelectorNode,
-    "GlobalVarSetNode": GlobalVarSetNode,
-    "GlobalVarGetNode": GlobalVarGetNode,
-    "GlobalVarGetSelectNode": GlobalVarGetSelectNode,
+    "CacheNode": CacheNode,
 }
 
 # 节点显示名称映射
@@ -40,9 +38,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "TextCleanupAdvancedNode": "Text Cleanup Adv",
     "TypeSwitchAutoNode": "Type Switch",
     "LoraSelectorNode": "Lora Selector",
-    "GlobalVarSetNode": "Global Var Set",
-    "GlobalVarGetNode": "Global Var Get",
-    "GlobalVarGetSelectNode": "Global Var Select",
+    "CacheNode": "Cache Node",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']
