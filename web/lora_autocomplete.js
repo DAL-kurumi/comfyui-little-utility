@@ -6,7 +6,7 @@ console.log("[Little Utility] Lora 自動補全擴展已加載");
 // 緩存 Lora 列表
 let loraCache = null;
 let loraCacheTime = 0;
-const CACHE_DURATION = 60000; // 緩存 60 秒
+const CACHE_DURATION = 5000; // 縮短緩存至 5 秒，確保及時更新
 
 // 觸發詞緩存
 let triggerWordsCache = null;
@@ -15,77 +15,77 @@ let triggerWordsCache = null;
  * 獲取 Lora 列表（帶緩存）
  */
 async function fetchLoraList() {
-    const now = Date.now();
-    if (loraCache && (now - loraCacheTime) < CACHE_DURATION) {
-        return loraCache;
-    }
-    
-    try {
-        const response = await api.fetchApi("/little-utility/loras");
-        const data = await response.json();
-        loraCache = data.loras || [];
-        loraCacheTime = now;
-        console.log(`[Little Utility] 已加載 ${loraCache.length} 個 Lora`);
-        return loraCache;
-    } catch (error) {
-        console.error("[Little Utility] 獲取 Lora 列表失敗:", error);
-        return [];
-    }
+  const now = Date.now();
+  if (loraCache && now - loraCacheTime < CACHE_DURATION) {
+    return loraCache;
+  }
+
+  try {
+    const response = await api.fetchApi("/little-utility/loras");
+    const data = await response.json();
+    loraCache = data.loras || [];
+    loraCacheTime = now;
+    console.log(`[Little Utility] 已加載 ${loraCache.length} 個 Lora`);
+    return loraCache;
+  } catch (error) {
+    console.error("[Little Utility] 獲取 Lora 列表失敗:", error);
+    return [];
+  }
 }
 
 /**
  * 獲取觸發詞配置
  */
 async function fetchTriggerWords() {
-    try {
-        const response = await api.fetchApi("/little-utility/trigger-words");
-        const data = await response.json();
-        triggerWordsCache = data.trigger_words || {};
-        return triggerWordsCache;
-    } catch (error) {
-        console.error("[Little Utility] 獲取觸發詞失敗:", error);
-        return {};
-    }
+  try {
+    const response = await api.fetchApi("/little-utility/trigger-words");
+    const data = await response.json();
+    triggerWordsCache = data.trigger_words || {};
+    return triggerWordsCache;
+  } catch (error) {
+    console.error("[Little Utility] 獲取觸發詞失敗:", error);
+    return {};
+  }
 }
 
 /**
  * 保存觸發詞
  */
 async function saveTriggerWord(loraName, triggerWord) {
-    try {
-        const response = await api.fetchApi("/little-utility/trigger-words", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                lora_name: loraName,
-                trigger_word: triggerWord
-            })
-        });
-        const data = await response.json();
-        if (data.success) {
-            // 更新緩存
-            if (!triggerWordsCache) triggerWordsCache = {};
-            if (triggerWord) {
-                triggerWordsCache[loraName] = triggerWord;
-            } else {
-                delete triggerWordsCache[loraName];
-            }
-        }
-        return data;
-    } catch (error) {
-        console.error("[Little Utility] 保存觸發詞失敗:", error);
-        return { success: false, error: error.message };
+  try {
+    const response = await api.fetchApi("/little-utility/trigger-words", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lora_name: loraName,
+        trigger_word: triggerWord,
+      }),
+    });
+    const data = await response.json();
+    if (data.success) {
+      // 更新緩存
+      if (!triggerWordsCache) triggerWordsCache = {};
+      if (triggerWord) {
+        triggerWordsCache[loraName] = triggerWord;
+      } else {
+        delete triggerWordsCache[loraName];
+      }
     }
+    return data;
+  } catch (error) {
+    console.error("[Little Utility] 保存觸發詞失敗:", error);
+    return { success: false, error: error.message };
+  }
 }
 
 // ==================== 樣式注入 ====================
 
 function injectStyles() {
-    if (document.getElementById("lora-autocomplete-styles")) return;
-    
-    const style = document.createElement("style");
-    style.id = "lora-autocomplete-styles";
-    style.textContent = `
+  if (document.getElementById("lora-autocomplete-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "lora-autocomplete-styles";
+  style.textContent = `
         /* 自動補全下拉框 */
         .lora-autocomplete-dropdown {
             position: fixed;
@@ -342,7 +342,7 @@ function injectStyles() {
             }
         }
     `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 }
 
 // ==================== 自動補全下拉框 ====================
@@ -351,186 +351,188 @@ let activeDropdown = null;
 let activeInput = null;
 
 function highlightMatch(text, query) {
-    if (!query) return text;
-    
-    const lowerText = text.toLowerCase();
-    const lowerQuery = query.toLowerCase();
-    let result = "";
-    let lastIndex = 0;
-    let searchIndex = 0;
-    
-    while ((searchIndex = lowerText.indexOf(lowerQuery, lastIndex)) !== -1) {
-        result += text.substring(lastIndex, searchIndex);
-        result += `<span class="match">${text.substring(searchIndex, searchIndex + query.length)}</span>`;
-        lastIndex = searchIndex + query.length;
-    }
-    result += text.substring(lastIndex);
-    
-    return result;
+  if (!query) return text;
+
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  let result = "";
+  let lastIndex = 0;
+  let searchIndex = 0;
+
+  while ((searchIndex = lowerText.indexOf(lowerQuery, lastIndex)) !== -1) {
+    result += text.substring(lastIndex, searchIndex);
+    result += `<span class="match">${text.substring(searchIndex, searchIndex + query.length)}</span>`;
+    lastIndex = searchIndex + query.length;
+  }
+  result += text.substring(lastIndex);
+
+  return result;
 }
 
 function getDropdown() {
-    if (activeDropdown) return activeDropdown;
-    
-    injectStyles();
-    
-    const dropdown = document.createElement("div");
-    dropdown.className = "lora-autocomplete-dropdown";
-    dropdown.style.display = "none";
-    document.body.appendChild(dropdown);
-    
-    activeDropdown = dropdown;
-    return dropdown;
+  if (activeDropdown) return activeDropdown;
+
+  injectStyles();
+
+  const dropdown = document.createElement("div");
+  dropdown.className = "lora-autocomplete-dropdown";
+  dropdown.style.display = "none";
+  document.body.appendChild(dropdown);
+
+  activeDropdown = dropdown;
+  return dropdown;
 }
 
 function hideDropdown() {
-    if (activeDropdown) {
-        activeDropdown.style.display = "none";
-    }
-    activeInput = null;
+  if (activeDropdown) {
+    activeDropdown.style.display = "none";
+  }
+  activeInput = null;
 }
 
 function showDropdown(inputElement, loras, query, onSelect, triggerWords) {
-    const dropdown = getDropdown();
-    dropdown.innerHTML = "";
-    activeInput = inputElement;
-    
-    // 獲取最後一個逗號後的內容進行匹配
-    const parts = query.split(",");
-    const lastPart = parts[parts.length - 1].trim().toLowerCase();
-    
-    // 過濾匹配項
-    let filtered = loras;
-    if (lastPart) {
-        filtered = loras.filter(lora => 
-            lora.name.toLowerCase().includes(lastPart)
-        );
-    }
-    
-    if (filtered.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "lora-autocomplete-empty";
-        empty.textContent = lastPart ? "沒有匹配的 Lora" : "開始輸入以搜索...";
-        dropdown.appendChild(empty);
-    } else {
-        const displayItems = filtered.slice(0, 30);
-        
-        displayItems.forEach((lora, index) => {
-            const item = document.createElement("div");
-            item.className = "lora-autocomplete-item";
-            if (index === 0) item.classList.add("selected");
-            
-            const nameSpan = document.createElement("span");
-            nameSpan.className = "name";
-            nameSpan.innerHTML = highlightMatch(lora.name, lastPart);
-            item.appendChild(nameSpan);
-            
-            // 顯示是否有觸發詞
-            // 優先使用傳入的 triggerWords，如果沒有則使用全局緩存
-            const tw = triggerWords || triggerWordsCache;
-            if (tw && tw[lora.name]) {
-                const hasTrigger = document.createElement("span");
-                hasTrigger.className = "has-trigger";
-                hasTrigger.textContent = "✓ 觸發詞";
-                item.appendChild(hasTrigger);
-            }
-            
-            item.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // 替換最後一個部分
-                parts[parts.length - 1] = lora.name;
-                const newValue = parts.join(", ");
-                onSelect(newValue);
-                hideDropdown();
-            });
-            
-            item.addEventListener("mouseenter", () => {
-                dropdown.querySelectorAll(".lora-autocomplete-item").forEach(el => {
-                    el.classList.remove("selected");
-                });
-                item.classList.add("selected");
-            });
-            
-            dropdown.appendChild(item);
+  const dropdown = getDropdown();
+  dropdown.innerHTML = "";
+  activeInput = inputElement;
+
+  // 獲取最後一個逗號後的內容進行匹配
+  const parts = query.split(",");
+  const lastPart = parts[parts.length - 1].trim().toLowerCase();
+
+  // 過濾匹配項
+  let filtered = loras;
+  if (lastPart) {
+    filtered = loras.filter((lora) =>
+      lora.name.toLowerCase().includes(lastPart),
+    );
+  }
+
+  if (filtered.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "lora-autocomplete-empty";
+    empty.textContent = lastPart ? "沒有匹配的 Lora" : "開始輸入以搜索...";
+    dropdown.appendChild(empty);
+  } else {
+    const displayItems = filtered.slice(0, 30);
+
+    displayItems.forEach((lora, index) => {
+      const item = document.createElement("div");
+      item.className = "lora-autocomplete-item";
+      if (index === 0) item.classList.add("selected");
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.innerHTML = highlightMatch(lora.name, lastPart);
+      item.appendChild(nameSpan);
+
+      // 顯示是否有觸發詞
+      // 優先使用傳入的 triggerWords，如果沒有則使用全局緩存
+      const tw = triggerWords || triggerWordsCache;
+      if (tw && tw[lora.name]) {
+        const hasTrigger = document.createElement("span");
+        hasTrigger.className = "has-trigger";
+        hasTrigger.textContent = "✓ 觸發詞";
+        item.appendChild(hasTrigger);
+      }
+
+      item.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // 替換最後一個部分
+        parts[parts.length - 1] = lora.name;
+        const newValue = parts.join(", ");
+        onSelect(newValue);
+        hideDropdown();
+      });
+
+      item.addEventListener("mouseenter", () => {
+        dropdown.querySelectorAll(".lora-autocomplete-item").forEach((el) => {
+          el.classList.remove("selected");
         });
-    }
-    
-    // 定位下拉框
-    const rect = inputElement.getBoundingClientRect();
-    dropdown.style.left = `${rect.left}px`;
-    dropdown.style.top = `${rect.bottom + 2}px`;
-    dropdown.style.width = `${Math.max(rect.width, 280)}px`;
-    dropdown.style.display = "block";
+        item.classList.add("selected");
+      });
+
+      dropdown.appendChild(item);
+    });
+  }
+
+  // 定位下拉框
+  const rect = inputElement.getBoundingClientRect();
+  dropdown.style.left = `${rect.left}px`;
+  dropdown.style.top = `${rect.bottom + 2}px`;
+  dropdown.style.width = `${Math.max(rect.width, 280)}px`;
+  dropdown.style.display = "block";
 }
 
 function handleKeydown(e, onSelect) {
-    const dropdown = activeDropdown;
-    if (!dropdown || dropdown.style.display === "none") return false;
-    
-    const items = dropdown.querySelectorAll(".lora-autocomplete-item");
-    if (items.length === 0) return false;
-    
-    let selectedIndex = Array.from(items).findIndex(item => item.classList.contains("selected"));
-    
-    switch (e.key) {
-        case "ArrowDown":
-            e.preventDefault();
-            if (selectedIndex < items.length - 1) {
-                items[selectedIndex]?.classList.remove("selected");
-                items[selectedIndex + 1]?.classList.add("selected");
-                items[selectedIndex + 1]?.scrollIntoView({ block: "nearest" });
-            }
-            return true;
-            
-        case "ArrowUp":
-            e.preventDefault();
-            if (selectedIndex > 0) {
-                items[selectedIndex]?.classList.remove("selected");
-                items[selectedIndex - 1]?.classList.add("selected");
-                items[selectedIndex - 1]?.scrollIntoView({ block: "nearest" });
-            }
-            return true;
-            
-        case "Tab":
-            if (selectedIndex >= 0) {
-                e.preventDefault();
-                items[selectedIndex]?.click();
-            }
-            return true;
-            
-        case "Escape":
-            hideDropdown();
-            return true;
-    }
-    
-    return false;
+  const dropdown = activeDropdown;
+  if (!dropdown || dropdown.style.display === "none") return false;
+
+  const items = dropdown.querySelectorAll(".lora-autocomplete-item");
+  if (items.length === 0) return false;
+
+  let selectedIndex = Array.from(items).findIndex((item) =>
+    item.classList.contains("selected"),
+  );
+
+  switch (e.key) {
+    case "ArrowDown":
+      e.preventDefault();
+      if (selectedIndex < items.length - 1) {
+        items[selectedIndex]?.classList.remove("selected");
+        items[selectedIndex + 1]?.classList.add("selected");
+        items[selectedIndex + 1]?.scrollIntoView({ block: "nearest" });
+      }
+      return true;
+
+    case "ArrowUp":
+      e.preventDefault();
+      if (selectedIndex > 0) {
+        items[selectedIndex]?.classList.remove("selected");
+        items[selectedIndex - 1]?.classList.add("selected");
+        items[selectedIndex - 1]?.scrollIntoView({ block: "nearest" });
+      }
+      return true;
+
+    case "Tab":
+      if (selectedIndex >= 0) {
+        e.preventDefault();
+        items[selectedIndex]?.click();
+      }
+      return true;
+
+    case "Escape":
+      hideDropdown();
+      return true;
+  }
+
+  return false;
 }
 
 // ==================== 觸發詞管理對話框 ====================
 
 function showToast(message, type = "success") {
-    const toast = document.createElement("div");
-    toast.className = `lora-toast ${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+  const toast = document.createElement("div");
+  toast.className = `lora-toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 }
 
 function createManageDialog(onClose) {
-    injectStyles();
-    
-    const overlay = document.createElement("div");
-    overlay.className = "lora-dialog-overlay";
-    
-    const dialog = document.createElement("div");
-    dialog.className = "lora-dialog";
-    
-    dialog.innerHTML = `
+  injectStyles();
+
+  const overlay = document.createElement("div");
+  overlay.className = "lora-dialog-overlay";
+
+  const dialog = document.createElement("div");
+  dialog.className = "lora-dialog";
+
+  dialog.innerHTML = `
         <div class="lora-dialog-header">
             <span class="lora-dialog-title">管理 Lora 觸發詞</span>
             <button class="lora-dialog-close">×</button>
@@ -551,266 +553,282 @@ function createManageDialog(onClose) {
             <button class="lora-btn lora-btn-primary" id="lora-dialog-save">保存</button>
         </div>
     `;
-    
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-    
-    // 元素引用
-    const nameInput = dialog.querySelector("#lora-dialog-name");
-    const triggerInput = dialog.querySelector("#lora-dialog-trigger");
-    const dropdown = dialog.querySelector("#lora-dialog-dropdown");
-    const closeBtn = dialog.querySelector(".lora-dialog-close");
-    const cancelBtn = dialog.querySelector("#lora-dialog-cancel");
-    const saveBtn = dialog.querySelector("#lora-dialog-save");
-    
-    // 關閉對話框
-    const close = () => {
-        overlay.remove();
-        if (onClose) onClose();
-    };
-    
-    closeBtn.addEventListener("click", close);
-    cancelBtn.addEventListener("click", close);
-    overlay.addEventListener("click", (e) => {
-        if (e.target === overlay) close();
-    });
-    
-                    // Lora 名稱自動補全
-    let loras = [];
-    
-    async function initData() {
-        loras = await fetchLoraList();
-        // 確保觸發詞是最新的
-        if (!triggerWordsCache) {
-            await fetchTriggerWords();
-        }
+
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+
+  // 元素引用
+  const nameInput = dialog.querySelector("#lora-dialog-name");
+  const triggerInput = dialog.querySelector("#lora-dialog-trigger");
+  const dropdown = dialog.querySelector("#lora-dialog-dropdown");
+  const closeBtn = dialog.querySelector(".lora-dialog-close");
+  const cancelBtn = dialog.querySelector("#lora-dialog-cancel");
+  const saveBtn = dialog.querySelector("#lora-dialog-save");
+
+  // 關閉對話框
+  const close = () => {
+    overlay.remove();
+    if (onClose) onClose();
+  };
+
+  closeBtn.addEventListener("click", close);
+  cancelBtn.addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  // Lora 名稱自動補全
+  let loras = [];
+
+  async function initData() {
+    loras = await fetchLoraList();
+    // 確保觸發詞是最新的
+    if (!triggerWordsCache) {
+      await fetchTriggerWords();
     }
-    
-    initData();
-    
-    function showDialogDropdown(query) {
-        dropdown.innerHTML = "";
-        
-        const lowerQuery = query.toLowerCase();
-        const filtered = loras.filter(lora => lora.name.toLowerCase().includes(lowerQuery)).slice(0, 20);
-        
-        if (filtered.length === 0) {
-            dropdown.style.display = "none";
-            return;
-        }
-        
-        filtered.forEach((lora, index) => {
-            const item = document.createElement("div");
-            item.className = "lora-autocomplete-item";
-            if (index === 0) item.classList.add("selected");
-            
-            const nameSpan = document.createElement("span");
-            nameSpan.className = "name";
-            nameSpan.innerHTML = highlightMatch(lora.name, query);
-            item.appendChild(nameSpan);
-            
-            // 直接使用全局緩存
-            if (triggerWordsCache && triggerWordsCache[lora.name]) {
-                const hasTrigger = document.createElement("span");
-                hasTrigger.className = "has-trigger";
-                hasTrigger.textContent = "✓";
-                item.appendChild(hasTrigger);
-            }
-            
-            item.addEventListener("click", () => {
-                nameInput.value = lora.name;
-                triggerInput.value = (triggerWordsCache && triggerWordsCache[lora.name]) || "";
-                dropdown.style.display = "none";
-            });
-            
-            item.addEventListener("mouseenter", () => {
-                dropdown.querySelectorAll(".lora-autocomplete-item").forEach(el => el.classList.remove("selected"));
-                item.classList.add("selected");
-            });
-            
-            dropdown.appendChild(item);
-        });
-        
-        const rect = nameInput.getBoundingClientRect();
-        dropdown.style.position = "fixed";
-        dropdown.style.left = `${rect.left}px`;
-        dropdown.style.top = `${rect.bottom + 2}px`;
-        dropdown.style.width = `${rect.width}px`;
-        dropdown.style.display = "block";
+  }
+
+  initData();
+
+  function showDialogDropdown(query) {
+    dropdown.innerHTML = "";
+
+    const lowerQuery = query.toLowerCase();
+    const filtered = loras
+      .filter((lora) => lora.name.toLowerCase().includes(lowerQuery))
+      .slice(0, 20);
+
+    if (filtered.length === 0) {
+      dropdown.style.display = "none";
+      return;
     }
-    
-    nameInput.addEventListener("input", () => {
-        showDialogDropdown(nameInput.value);
+
+    filtered.forEach((lora, index) => {
+      const item = document.createElement("div");
+      item.className = "lora-autocomplete-item";
+      if (index === 0) item.classList.add("selected");
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.innerHTML = highlightMatch(lora.name, query);
+      item.appendChild(nameSpan);
+
+      // 直接使用全局緩存
+      if (triggerWordsCache && triggerWordsCache[lora.name]) {
+        const hasTrigger = document.createElement("span");
+        hasTrigger.className = "has-trigger";
+        hasTrigger.textContent = "✓";
+        item.appendChild(hasTrigger);
+      }
+
+      item.addEventListener("click", () => {
+        nameInput.value = lora.name;
+        triggerInput.value =
+          (triggerWordsCache && triggerWordsCache[lora.name]) || "";
+        dropdown.style.display = "none";
+      });
+
+      item.addEventListener("mouseenter", () => {
+        dropdown
+          .querySelectorAll(".lora-autocomplete-item")
+          .forEach((el) => el.classList.remove("selected"));
+        item.classList.add("selected");
+      });
+
+      dropdown.appendChild(item);
     });
-    
-    nameInput.addEventListener("focus", () => {
-        if (nameInput.value) {
-            showDialogDropdown(nameInput.value);
-        }
-    });
-    
-    nameInput.addEventListener("keydown", (e) => {
-        if (dropdown.style.display === "none") return;
-        
-        const items = dropdown.querySelectorAll(".lora-autocomplete-item");
-        let selectedIndex = Array.from(items).findIndex(item => item.classList.contains("selected"));
-        
-        if (e.key === "ArrowDown") {
-            e.preventDefault();
-            if (selectedIndex < items.length - 1) {
-                items[selectedIndex]?.classList.remove("selected");
-                items[selectedIndex + 1]?.classList.add("selected");
-            }
-        } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            if (selectedIndex > 0) {
-                items[selectedIndex]?.classList.remove("selected");
-                items[selectedIndex - 1]?.classList.add("selected");
-            }
-        } else if (e.key === "Enter" || e.key === "Tab") {
-            e.preventDefault();
-            items[selectedIndex]?.click();
-        } else if (e.key === "Escape") {
-            dropdown.style.display = "none";
-        }
-    });
-    
-    // 點擊外部關閉下拉框
-    dialog.addEventListener("click", (e) => {
-        if (!nameInput.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.style.display = "none";
-        }
-    });
-    
-    // 保存
-    saveBtn.addEventListener("click", async () => {
-        const loraName = nameInput.value.trim();
-        const triggerWord = triggerInput.value.trim();
-        
-        if (!loraName) {
-            showToast("請輸入 Lora 名稱", "error");
-            return;
-        }
-        
-        const result = await saveTriggerWord(loraName, triggerWord);
-        
-        if (result.success) {
-            showToast(triggerWord ? "觸發詞已保存" : "觸發詞已刪除", "success");
-            // 這裡不需要手動更新緩存，saveTriggerWord 已經做了
-            nameInput.value = "";
-            triggerInput.value = "";
-        } else {
-            showToast(result.error || "保存失敗", "error");
-        }
-    });
-    
-    // 聚焦輸入框
-    setTimeout(() => nameInput.focus(), 100);
-    
-    return { overlay, close };
+
+    const rect = nameInput.getBoundingClientRect();
+    dropdown.style.position = "fixed";
+    dropdown.style.left = `${rect.left}px`;
+    dropdown.style.top = `${rect.bottom + 2}px`;
+    dropdown.style.width = `${rect.width}px`;
+    dropdown.style.display = "block";
+  }
+
+  nameInput.addEventListener("input", () => {
+    showDialogDropdown(nameInput.value);
+  });
+
+  nameInput.addEventListener("focus", () => {
+    if (nameInput.value) {
+      showDialogDropdown(nameInput.value);
+    }
+  });
+
+  nameInput.addEventListener("keydown", (e) => {
+    if (dropdown.style.display === "none") return;
+
+    const items = dropdown.querySelectorAll(".lora-autocomplete-item");
+    let selectedIndex = Array.from(items).findIndex((item) =>
+      item.classList.contains("selected"),
+    );
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (selectedIndex < items.length - 1) {
+        items[selectedIndex]?.classList.remove("selected");
+        items[selectedIndex + 1]?.classList.add("selected");
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (selectedIndex > 0) {
+        items[selectedIndex]?.classList.remove("selected");
+        items[selectedIndex - 1]?.classList.add("selected");
+      }
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      items[selectedIndex]?.click();
+    } else if (e.key === "Escape") {
+      dropdown.style.display = "none";
+    }
+  });
+
+  // 點擊外部關閉下拉框
+  dialog.addEventListener("click", (e) => {
+    if (!nameInput.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = "none";
+    }
+  });
+
+  // 保存
+  saveBtn.addEventListener("click", async () => {
+    const loraName = nameInput.value.trim();
+    const triggerWord = triggerInput.value.trim();
+
+    if (!loraName) {
+      showToast("請輸入 Lora 名稱", "error");
+      return;
+    }
+
+    const result = await saveTriggerWord(loraName, triggerWord);
+
+    if (result.success) {
+      showToast(triggerWord ? "觸發詞已保存" : "觸發詞已刪除", "success");
+      // 這裡不需要手動更新緩存，saveTriggerWord 已經做了
+      nameInput.value = "";
+      triggerInput.value = "";
+    } else {
+      showToast(result.error || "保存失敗", "error");
+    }
+  });
+
+  // 聚焦輸入框
+  setTimeout(() => nameInput.focus(), 100);
+
+  return { overlay, close };
 }
 
 // ==================== 註冊擴展 ====================
 
 document.addEventListener("click", (e) => {
-    if (activeInput && !activeInput.contains(e.target) && 
-        activeDropdown && !activeDropdown.contains(e.target)) {
-        hideDropdown();
-    }
+  if (
+    activeInput &&
+    !activeInput.contains(e.target) &&
+    activeDropdown &&
+    !activeDropdown.contains(e.target)
+  ) {
+    hideDropdown();
+  }
 });
 
 app.registerExtension({
-    name: "Comfy.LittleUtility.LoraAutocomplete",
-    
-    async beforeRegisterNodeDef(nodeType, nodeData) {
-        if (nodeData.name === "LoraSelectorNode") {
-            
-            const onNodeCreated = nodeType.prototype.onNodeCreated;
-            nodeType.prototype.onNodeCreated = function() {
-                const r = onNodeCreated ? onNodeCreated.apply(this, arguments) : undefined;
-                const node = this;
-                
-                setTimeout(async () => {
-                    const loraWidget = this.widgets?.find(w => w.name === "lora_name");
-                    if (!loraWidget) {
-                        console.warn("[Little Utility] 找不到 lora_name widget");
-                        return;
-                    }
-                    
-                    const inputEl = loraWidget.inputEl;
-                    if (!inputEl) {
-                        console.warn("[Little Utility] 找不到 lora_name 輸入元素");
-                        return;
-                    }
-                    
-                    let loras = await fetchLoraList();
-                    // 初始化觸發詞緩存
-                    if (!triggerWordsCache) {
-                        await fetchTriggerWords();
-                    }
-                    
-                    const onSelect = (value) => {
-                        loraWidget.value = value;
-                        inputEl.value = value;
-                        if (node.onWidgetChanged) {
-                            node.onWidgetChanged(loraWidget.name, value, value, loraWidget);
-                        }
-                        node.setDirtyCanvas(true, true);
-                    };
-                    
-                    inputEl.addEventListener("input", () => {
-                        const query = inputEl.value;
-                        // 直接傳遞 null 作為 triggerWords 參數，讓 showDropdown 使用全局緩存
-                        showDropdown(inputEl, loras, query, onSelect, null);
-                    });
-                    
-                    inputEl.addEventListener("focus", async () => {
-                        loras = await fetchLoraList();
-                        // 確保緩存存在
-                        if (!triggerWordsCache) {
-                            await fetchTriggerWords();
-                        }
-                        const query = inputEl.value;
-                        showDropdown(inputEl, loras, query, onSelect, null);
-                    });
-                    
-                    inputEl.addEventListener("keydown", (e) => {
-                        handleKeydown(e, onSelect);
-                    });
-                    
-                    // 添加管理按鈕
-                    const btnContainer = document.createElement("div");
-                    btnContainer.style.cssText = "position: relative;";
-                    
-                    const manageBtn = document.createElement("button");
-                    manageBtn.className = "lora-manage-btn";
-                    manageBtn.innerHTML = '<span class="icon">+</span> 管理觸發詞';
-                    
-                    manageBtn.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        createManageDialog(() => {
-                            // 關閉回調，不需要做什麼，因為緩存已經是全局的並已更新
-                        });
-                    });
-                    
-                    // 添加按鈕 widget
-                    const buttonWidget = node.addDOMWidget("manage_btn", "button", manageBtn, {
-                        serialize: false,
-                    });
-                    
-                    console.log("[Little Utility] Lora 自動補全和管理按鈕已啟用");
-                    
-                }, 100);
-                
-                return r;
-            };
-        }
+  name: "Comfy.LittleUtility.LoraAutocomplete",
+
+  async beforeRegisterNodeDef(nodeType, nodeData) {
+    if (nodeData.name === "LoraSelectorNode") {
+      const onNodeCreated = nodeType.prototype.onNodeCreated;
+      nodeType.prototype.onNodeCreated = function () {
+        const r = onNodeCreated
+          ? onNodeCreated.apply(this, arguments)
+          : undefined;
+        const node = this;
+
+        setTimeout(async () => {
+          const loraWidget = this.widgets?.find((w) => w.name === "lora_name");
+          if (!loraWidget) {
+            console.warn("[Little Utility] 找不到 lora_name widget");
+            return;
+          }
+
+          const inputEl = loraWidget.inputEl;
+          if (!inputEl) {
+            console.warn("[Little Utility] 找不到 lora_name 輸入元素");
+            return;
+          }
+
+          let loras = await fetchLoraList();
+          // 初始化觸發詞緩存
+          if (!triggerWordsCache) {
+            await fetchTriggerWords();
+          }
+
+          const onSelect = (value) => {
+            loraWidget.value = value;
+            inputEl.value = value;
+            if (node.onWidgetChanged) {
+              node.onWidgetChanged(loraWidget.name, value, value, loraWidget);
+            }
+            node.setDirtyCanvas(true, true);
+          };
+
+          inputEl.addEventListener("input", () => {
+            const query = inputEl.value;
+            // 直接傳遞 null 作為 triggerWords 參數，讓 showDropdown 使用全局緩存
+            showDropdown(inputEl, loras, query, onSelect, null);
+          });
+
+          inputEl.addEventListener("focus", async () => {
+            loras = await fetchLoraList();
+            // 確保緩存存在
+            if (!triggerWordsCache) {
+              await fetchTriggerWords();
+            }
+            const query = inputEl.value;
+            showDropdown(inputEl, loras, query, onSelect, null);
+          });
+
+          inputEl.addEventListener("keydown", (e) => {
+            handleKeydown(e, onSelect);
+          });
+
+          // 添加管理按鈕
+          const btnContainer = document.createElement("div");
+          btnContainer.style.cssText = "position: relative;";
+
+          const manageBtn = document.createElement("button");
+          manageBtn.className = "lora-manage-btn";
+          manageBtn.innerHTML = '<span class="icon">+</span> 管理觸發詞';
+
+          manageBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            createManageDialog(() => {
+              // 關閉回調，不需要做什麼，因為緩存已經是全局的並已更新
+            });
+          });
+
+          // 添加按鈕 widget
+          const buttonWidget = node.addDOMWidget(
+            "manage_btn",
+            "button",
+            manageBtn,
+            {
+              serialize: false,
+            },
+          );
+
+          console.log("[Little Utility] Lora 自動補全和管理按鈕已啟用");
+        }, 100);
+
+        return r;
+      };
     }
+  },
 });
 
 // 預加載
 setTimeout(() => {
-    fetchLoraList();
-    fetchTriggerWords();
+  fetchLoraList();
+  fetchTriggerWords();
 }, 1000);

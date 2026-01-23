@@ -62,6 +62,19 @@ class LoraSelectorNode:
     CATEGORY = "utils"
     
     @classmethod
+    def IS_CHANGED(cls, lora_name):
+        """
+        當觸發詞配置文件變動時，強制節點重新執行
+        """
+        if os.path.exists(TRIGGER_WORDS_FILE):
+            try:
+                # 使用修改時間作為變動標識
+                return os.path.getmtime(TRIGGER_WORDS_FILE)
+            except Exception:
+                pass
+        return float("NaN")
+    
+    @classmethod
     def get_lora_list(cls):
         """
         獲取所有可用的 Lora 文件列表
