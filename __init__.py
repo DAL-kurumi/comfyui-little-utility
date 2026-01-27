@@ -11,6 +11,7 @@ from .nodes.type_switch_node import TypeSwitchAutoNode
 from .nodes.lora_selector_node import LoraSelectorNode
 from .nodes.latent_utils import EmptyLatentImageWithFlip
 from .nodes.cache_node import CacheNode
+from .nodes.workflow_save_node import WorkflowSaveNode
 
 # 導入 API 路由（這會自動註冊路由到服務器）
 from .nodes.server import lora_api
@@ -26,6 +27,7 @@ NODE_CLASS_MAPPINGS = {
     "TypeSwitchAutoNode": TypeSwitchAutoNode,
     "LoraSelectorNode": LoraSelectorNode,
     "CacheNode": CacheNode,
+    "WorkflowSaveNode": WorkflowSaveNode,
 }
 
 # 节点显示名称映射
@@ -39,6 +41,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "TypeSwitchAutoNode": "Type Switch",
     "LoraSelectorNode": "Lora Selector",
     "CacheNode": "Cache Node",
+    "WorkflowSaveNode": "Workflow Save",
 }
 
 __all__ = ['NODE_CLASS_MAPPINGS', 'NODE_DISPLAY_NAME_MAPPINGS']

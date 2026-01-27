@@ -40,10 +40,5 @@ class ImageInfoNode:
         batch_size = image.shape[0]
         height = image.shape[1]
         width = image.shape[2]
-        # channels = image.shape[3]  # 通常是3（RGB）或4（RGBA）
         
-        # 打印信息到控制台（用于调试）
-        print(f"图片信息 - 批次: {batch_size}, 高度: {height}, 宽度: {width}")
-        
-        # 返回：原图片（传递给下一个节点）、宽度、高度、批次数
         return (image, width, height, batch_size)
