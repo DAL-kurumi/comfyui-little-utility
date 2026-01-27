@@ -1,7 +1,5 @@
 import os
 import json
-from datetime import datetime
-import folder_paths
 
 
 class AnyType(str):
@@ -13,6 +11,22 @@ class AnyType(str):
 
 
 any_type = AnyType("*")
+
+
+def get_comfyui_workflows_directory():
+    """獲取 ComfyUI 用戶工作流目錄 (ComfyUI/user/default/workflows)"""
+    try:
+        import folder_paths
+        # 使用 base_path 構建完整路徑
+        if hasattr(folder_paths, 'base_path'):
+            return os.path.join(folder_paths.base_path, "user", "default", "workflows")
+    except ImportError:
+        pass
+    # 回退：使用當前文件位置推算
+    # 假設節點在 ComfyUI/custom_nodes/xxx/nodes/ 下
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    comfyui_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+    return os.path.join(comfyui_root, "user", "default", "workflows")
 
 
 class WorkflowSaveNode:
@@ -43,17 +57,14 @@ class WorkflowSaveNode:
     OUTPUT_NODE = True
 
     def execute(self, filename_prefix, any_input=None, extra_pnginfo=None, prompt=None):
-        # 獲取 ComfyUI 用戶目錄下的 workflows 目錄
-        # folder_paths.get_user_directory() 返回 ComfyUI/user/default
-        user_dir = folder_paths.get_user_directory()
-        workflows_dir = os.path.join(user_dir, "workflows")
+        # 獲取 ComfyUI 用戶工作流目錄
+        workflows_dir = get_comfyui_workflows_directory()
         
         # 確保目錄存在
         os.makedirs(workflows_dir, exist_ok=True)
         
-        # 生成帶時間戳的檔案名
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{filename_prefix}_{timestamp}.json"
+        # 使用設定的名字作為檔案名
+        filename = f"{filename_prefix}.json"
         filepath = os.path.join(workflows_dir, filename)
         
         # 準備要保存的工作流數據
