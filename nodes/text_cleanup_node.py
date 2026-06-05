@@ -56,64 +56,28 @@ class TextCleanupNode:
         if not text:
             return ("",)
         
-        original_text = text
         cleaned = text
         
-        print("=" * 50)
-        print("開始清理文字...")
-        print(f"原始文字長度: {len(text)} 字符")
-        
         # 1. 處理連續的逗號（包括中間有空格的情況）
-        # ", ," -> ","
-        # ",  ," -> ","
-        # ",," -> ","
-        # ",,," -> ","
         cleaned = re.sub(r',(\s*,)+', ',', cleaned)
-        print("步驟 1: 移除連續逗號")
         
         # 2. 處理逗號前的多餘空格
-        # "word , word" -> "word, word"
         cleaned = re.sub(r'\s+,', ',', cleaned)
-        print("步驟 2: 移除逗號前的空格")
         
-        # 3. 標準化逗號後的空格（確保逗號後只有一個空格，如果有的話）
-        # "word,word" -> "word, word"
-        # "word,  word" -> "word, word"
+        # 3. 標準化逗號後的空格（確保逗號後只有一個空格）
         cleaned = re.sub(r',\s*', ', ', cleaned)
-        print("步驟 3: 標準化逗號後的空格")
         
         # 4. 如果啟用，標準化所有多餘的空格
         if normalize_spaces:
-            # 將多個空格轉為一個空格
             cleaned = re.sub(r' +', ' ', cleaned)
-            print("步驟 4: 標準化多餘空格")
         
         # 5. 如果啟用，移除開頭和結尾的逗號及空格
         if remove_start_end_commas:
-            # 移除開頭的逗號和空格
             cleaned = re.sub(r'^[\s,]+', '', cleaned)
-            # 移除結尾的逗號和空格
             cleaned = re.sub(r'[\s,]+$', '', cleaned)
-            print("步驟 5: 移除開頭和結尾的逗號")
         
         # 6. 清理行首行尾的空格
         cleaned = cleaned.strip()
-        
-        # 統計結果
-        changes_made = original_text != cleaned
-        chars_removed = len(original_text) - len(cleaned)
-        
-        print(f"清理完成！")
-        print(f"清理後文字長度: {len(cleaned)} 字符")
-        print(f"移除了 {chars_removed} 個字符")
-        print(f"是否有變更: {'是' if changes_made else '否'}")
-        
-        if changes_made:
-            print("\n清理前後對比（前100字符）:")
-            print(f"清理前: {original_text[:100]}")
-            print(f"清理後: {cleaned[:100]}")
-        
-        print("=" * 50)
         
         return (cleaned,)
 
@@ -183,11 +147,7 @@ class TextCleanupAdvancedNode:
         lines = text.split('\n')
         cleaned_lines = []
         
-        print("=" * 50)
-        print("開始進階清理...")
-        print(f"原始行數: {len(lines)}")
-        
-        for i, line in enumerate(lines):
+        for line in lines:
             cleaned_line = line
             
             # 清理逗號
@@ -216,11 +176,6 @@ class TextCleanupAdvancedNode:
                 cleaned_lines.append(cleaned_line)
         
         cleaned = '\n'.join(cleaned_lines)
-        
-        print(f"清理後行數: {len(cleaned_lines)}")
-        print(f"移除了 {len(lines) - len(cleaned_lines)} 個空行")
-        print(f"清理後總字符數: {len(cleaned)}")
-        print("=" * 50)
         
         return (cleaned,)
 
