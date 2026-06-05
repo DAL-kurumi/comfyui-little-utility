@@ -8,6 +8,7 @@ from .nodes.image_download_node import ImageDownloadNode
 from .nodes.text_combine_node import TextCombineNode
 from .nodes.text_cleanup_node import TextCleanupNode, TextCleanupAdvancedNode
 from .nodes.type_switch_node import TypeSwitchAutoNode
+from .nodes.switch_any_node import SwitchAnyNode
 from .nodes.lora_selector_node import LoraSelectorNode
 from .nodes.latent_utils import EmptyLatentImageWithFlip
 from .nodes.cache_node import CacheNode
@@ -24,6 +25,7 @@ NODE_CLASS_MAPPINGS = {
     "EmptyLatentImageWithFlip": EmptyLatentImageWithFlip,
     "TextCleanupAdvancedNode": TextCleanupAdvancedNode,
     "TypeSwitchAutoNode": TypeSwitchAutoNode,
+    "SwitchAnyNode": SwitchAnyNode,
     "LoraSelectorNode": LoraSelectorNode,
     "CacheNode": CacheNode,
 }
@@ -37,6 +39,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "EmptyLatentImageWithFlip": "Empty Latent Flip",
     "TextCleanupAdvancedNode": "Text Cleanup Adv",
     "TypeSwitchAutoNode": "Type Switch",
+    "SwitchAnyNode": "Switch (Any)",
     "LoraSelectorNode": "Lora Selector",
     "CacheNode": "Cache Node",
 }
